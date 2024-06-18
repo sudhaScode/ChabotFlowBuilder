@@ -1,0 +1,15 @@
+.node-style{
+    background-color: #b2f0e3;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    font-weight: bold;
+    color: black;
+    padding-left: 15px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 275px;
+    
+}

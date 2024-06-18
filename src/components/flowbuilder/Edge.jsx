@@ -1,0 +1,1 @@
+/**This component defines the visual representation of the connections between nodes. */
