@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import FlowCanvas from './components/flowbuilder/FlowCanvas';
 import "./styles/App.css";
 
-
-const App = () => {
+function App()  {
  
   return (
     <div className="App">
