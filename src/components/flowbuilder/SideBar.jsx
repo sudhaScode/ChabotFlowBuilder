@@ -1,45 +1,51 @@
 import { useEffect, useState } from 'react';
-import "./styles/SideBar.css"
+import "./styles/SideBar.css";
 
 function SideBar({ nodeTypes }) {
-  const [showUsage, setShowUsage] = useState(true) // state to show helpful chat flow usage info
+  const [showUsage, setShowUsage] = useState(true); // State to show helpful chat flow usage info
 
-  // Tell drag & drop usage of nodes to user on first load of the application
+  // Effect to hide usage info after 5 seconds
   useEffect(() => {
     setTimeout(() => {
-      setShowUsage(false)
-    }, 5000)
-  }, [showUsage])
+      setShowUsage(false);
+    }, 5000);
+  }, [showUsage]);
 
-
+  // Function to handle drag start for nodes
   const onDragStart = (event, nodeType) => {
-    event.dataTransfer.setData('application/reactflow', nodeType)
-    event.dataTransfer.effectAllowed = 'move'
-  }
+    event.dataTransfer.setData('application/reactflow', nodeType); // Set data for drag event
+    event.dataTransfer.effectAllowed = 'move'; // Set drag effect
+  };
 
-  // You can expand upon adding new nodes by change the type from default
   return (
     <>
-      {showUsage && <div className="description" >
-        Drag required node to the pane on the left to add new nodes.
-      </div>}
+      {/* Display usage info for dragging nodes */}
+      {showUsage && (
+        <div className="description">
+          Drag required node to the pane on the left to add new nodes.
+        </div>
+      )}
+      {/* Sidebar section */}
       <div className='sidebar'>
-        {nodeTypes.map((nodeType) =>
+        {/* Map through nodeTypes to display each node */}
+        {nodeTypes.map((nodeType) => (
           <div
             className="appnode"
-            onDragStart={(event) => onDragStart(event, 'default')}
-            draggable
-            key={`$08{nodeType}1`}
+            onDragStart={(event) => onDragStart(event, 'default')} // Call onDragStart with node type
+            draggable // Make node draggable
+            key={`${nodeType.feature}1`} // Unique key for each nodeType
           >
-              <span>
-                <img src={`${nodeType.feature}.png`} alt="chat" className={`${nodeType.feature.toLowerCase()}-icon`} />
-              </span>
-              {nodeType.feature}
+            <span>
+              {/* Display node icon */}
+              <img src={`${nodeType.feature}.png`} alt="chat" className={`${nodeType.feature.toLowerCase()}-icon`} />
+            </span>
+            {/* Display node feature name */}
+            {nodeType.feature}
           </div>
-        )}
+        ))}
       </div>
     </>
-  )
+  );
 }
 
-export default SideBar
+export default SideBar;

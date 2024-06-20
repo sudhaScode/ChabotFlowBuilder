@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useReactFlow } from 'reactflow';
 import "./styles/UpdatedNode.css"
 
 // eslint-disable-next-line react/prop-types
@@ -14,9 +13,8 @@ function UpdateNode  ({
   let id = selectedNode.id;
 
   useEffect(() => {
-
     setNodeName(selectedNode.data['label']);
-  }, [id]);
+  }, [id, selectedNode.data]);
 
   // update the node on click of the save changes button
   useEffect(() => {

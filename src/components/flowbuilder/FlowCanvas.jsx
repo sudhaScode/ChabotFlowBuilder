@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -14,7 +14,6 @@ import Notification from './Notification'
 import './styles/FlowCanvas.css'
 //import { useSnackbar } from 'notistack';
 import { nodeTypes } from './store/Constants';
-import { initialNodes, initialEdges, initialTagets } from './store/Constants'
 
 
 let id = JSON.parse(sessionStorage.getItem("nodes"))?.length+1 || 1;
@@ -22,16 +21,17 @@ function FlowCanvas() {
   // Get the locally saved data
  
   const reactFlowWrapper = useRef(null)
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialEdges?JSON.parse(initialNodes):[])
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges?JSON.parse(initialEdges):[])
-  const [reactFlowInstance, setReactFlowInstance] = useState(initialTagets?JSON.parse(initialTagets):[])
+
+  // State variables for nodes, edges, and flow instance
+  const [nodes, setNodes, onNodesChange ] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null)
   const [nodeSelected, setNodeSelected] = useState(false)
   const [changeNode, setChangeNode] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null) // custom error message notification
   const [messageColor, setMessageColor] = useState(null) // custom color for error & success notification
   const [targetHandles, setTargetHandles] = useState([]) // keep track of target handles when new edges are created between nodes
-  //const { enqueueSnackbar, closeSnackbar } = useSnackbar()
-  //const [id, setId] = useState(JSON.parse(initialNodes)?.length || 0);
+
   
   //Chatbot flow Builder Features
   const nodeFeatures= [{feature:"Message"}]
@@ -42,34 +42,23 @@ function FlowCanvas() {
     setNodeSelected(true)
   }, []);
 
-  //unused - ignore
-  const reset = useCallback((event,node)=>{
-    //setChangeNode(node)
-    //setNodeSelected((state)=>!state)
-  })
-
   // Functions for edge creation and limitations
-  let sourceHandles = []
-  let targetHandle = []
-  const onConnect = useCallback(
-    (params) => {
-      // check if sourcehandle is already connected to node via a edge if it exists then allow another connection
-      if (sourceHandles.includes(params.source)) return
-      sourceHandles = sourceHandles.concat(params.source)
-    
-      setEdges(
-        (eds) => addEdge({ ...params, markerEnd: { type: 'arrowclosed' } }, eds) // to add arrowhead at the end of the edge connection pass additional params
-      )
+  const handleConnect = useCallback((params) => {
+    let sourceHandles = [];
+    let targetHandles = [];
 
-      // keep track of which target handles are connected
-      if (targetHandle.includes(params.target)) return
-      targetHandle = targetHandle.concat(params.target)
-      setTargetHandles(targetHandle)
-      
-  
-    },
-    [setEdges]
-  )
+    // Check if source handle is already connected
+    if (sourceHandles.includes(params.source)) return;
+    sourceHandles = sourceHandles.concat(params.source);
+
+    // Add edge with arrowhead marker
+    setEdges((prevEdges) => addEdge({ ...params, markerEnd: { type: 'arrowclosed' } }, prevEdges));
+
+    // Track connected target handles
+    if (targetHandles.includes(params.target)) return;
+    targetHandles = targetHandles.concat(params.target);
+    setTargetHandles(targetHandles);
+  }, [setEdges]);
 
   // Node deletion function feature tom be added
   const deleteNode = useCallback((nodeId) => {
@@ -80,10 +69,10 @@ function FlowCanvas() {
   }, [edges, setEdges, setNodes])
 
   // Function to handle edge click for deletion
-  const handleEdgeClick = useCallback((event, edge) => {
-   // setSelectedEdgeId(edge); // Track the clicked edge for deletion
-    deleteEdge(edge)
-  }, [])
+  // Function to handle edge deletion on double click
+  const handleEdgeDoubleClick = useCallback((event, edge) => {
+    deleteEdge(edge);
+  }, []);
 
   // Function to confirm and delete selected edge
   const deleteEdge = useCallback((edge) => {
@@ -101,13 +90,13 @@ function FlowCanvas() {
 
    // adjusting the canvas 
    
-  const onDragOver = useCallback((event) => {
+  const handleDragOver = useCallback((event) => {
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
   }, [])
 
 
-  const onDrop = useCallback(
+  const hanldeDrop = useCallback(
     (event) => {
       event.preventDefault()
 
@@ -146,9 +135,6 @@ function FlowCanvas() {
 
   // save node flow on click of save changes button using below function & validating for not more than one node target handles are unconnected
   const saveFlow = () => {
-  
-    
-    
     const currentNodes = reactFlowInstance.getNodes();
     const currentEdges = reactFlowInstance.getEdges();
     // console.log(currentEdges)
@@ -192,11 +178,23 @@ function FlowCanvas() {
     }
   }
 
+   // Effect to fetch initial state from sessionStorage on component mount
+   useEffect(() => {
+    const initialNodesData = JSON.parse(sessionStorage.getItem("nodes")) || [];
+    const initialEdgesData = JSON.parse(sessionStorage.getItem("edges")) || [];
+    const initialTargetsData = JSON.parse(sessionStorage.getItem("targets")) || [];
+
+    setNodes(initialNodesData);
+    setEdges(initialEdgesData);
+    setTargetHandles(initialTargetsData);
+  }, [setNodes, setEdges, setReactFlowInstance]);
+
   return (
     <div className="appflow">
+      {/* Top bar */}
        <div className="topbar">
-           
            <h3 className='appflow-logo'>Ë-ChatFlow Ƀuilder</h3>
+            {/* Error message notification */}
            {errorMessage  &&  <Notification
               errorMessage={errorMessage}
               messageColor={messageColor}
@@ -205,37 +203,30 @@ function FlowCanvas() {
               <button onClick={saveFlow}>Save Changes</button>
             </div>
           </div>
-      
+      {/* React Flow canvas area */}
       <ReactFlowProvider>
       <div className='flow-body'>
         <div className="reactflow-wrapper" ref={reactFlowWrapper}>
           <ReactFlow
             nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
+            edges={edges}           
+            onConnect={handleConnect}
+            onDrop={hanldeDrop}
+            onDragOver={handleDragOver}
             fitView
             proOptions={proOptions}
-            nodeTypes={nodeTypes}
+            //nodeTypes={nodeTypes}
+            onInit={setReactFlowInstance}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
             onNodeClick={update}
-            onEdgeDoubleClick={handleEdgeClick}
-            //onClick={reset}
-            
-            onEdgeContextMenu={({ edge }) => ( // Pass a function that returns the context menu content
-              <div>
-                <button onClick={() => deleteEdge(edge.id)}>
-                  Delete Edge
-                </button>
-              </div>
-            )}
+            onEdgeDoubleClick={handleEdgeDoubleClick}
+            nodeTypes={nodeTypes}
           >
             <Controls />
           </ReactFlow>
         </div>
+          {/* Sidebar */}
        <aside>
        {nodeSelected ? (
           <div className="rightbar">
@@ -250,10 +241,9 @@ function FlowCanvas() {
             <SideBar nodeTypes={nodeFeatures} />
           </div>
         )}
-       
        </aside>
-       
        </div>
+        {/* Instruction for deleting edges */}
        <div className='delete-edge'>Double click on edge to  delete</div>
       </ReactFlowProvider>
     </div>
