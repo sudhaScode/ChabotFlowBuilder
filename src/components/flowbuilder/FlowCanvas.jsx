@@ -12,7 +12,6 @@ import SideBar from './SideBar'
 import UpdateNode from './UpdateNode'
 import Notification from './Notification'
 import './styles/FlowCanvas.css'
-//import { useSnackbar } from 'notistack';
 import { nodeTypes } from './store/Constants';
 
 
