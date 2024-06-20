@@ -28,8 +28,8 @@ To run the ChatFlow Builder locally, follow these steps:
 **Clone the repository:**
 
 ```
-git clone https://github.com/your/repository.git
-cd repository-name
+git clone https://github.com/sudhaScode/ChabotFlowBuilder.git
+cd ChabotFlowBuilder
 
 ```
 **Install dependencies:**
