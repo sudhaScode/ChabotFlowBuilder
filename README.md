@@ -1,26 +1,81 @@
-# Getting Started with Create React App
+# ChatFlow Builder
+ChatFlow Builder is a web application for visually designing chatbot flows using React Flow.
 
-To run the application for development:
-###  `pnpm install` 
-Run at root directory to install all dependencies.
+## Table of Contents
+- Overview
+- Features
+- Installation
+- Usage
+- File Structure
 
-### `npm start` or recomended - `pnpm start` 
+### Overview
+ChatFlow Builder allows users to create and visualize chatbot flows through a user-friendly interface. It utilizes React Flow for the graphical representation of nodes and edges, allowing drag-and-drop functionality to add nodes and connect them with edges.
+<br>
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+`FlowCanvas:` Main component for the chatbot flow canvas.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm run build` or recomended - `pnpm run build` 
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Features
+- Drag and drop nodes from the sidebar onto the canvas.
+- Connect nodes with edges to define the flow.
+- Delete nodes and edges by double-clicking on them.
+- Save the current flow state to sessionStorage.
+- Responsive design for various screen sizes.
 
 
-## Main Packages used
-- `reactflow:` To get the core flow building functionality.
-- `react-flow-renderer:` To render the flow visualization in the UI.
+### Installation
+To run the ChatFlow Builder locally, follow these steps:
+
+**Clone the repository:**
+
+```
+git clone https://github.com/your/repository.git
+cd repository-name
+
+```
+**Install dependencies:**
+```
+pnpm install
+
+```
+**Start the development server:**
+```
+pnpm start or npm start
+
+```
+This will start the application on http://localhost:3000.
+
+### Usage
+**Adding Nodes** <br>
+Drag nodes from the sidebar on the left (SideBar) onto the main canvas (FlowCanvas).
+
+**Connecting Nodes**<br>
+Click and drag from one node to another on the canvas to create edges between nodes.
+
+**Deleting Edges** <br>
+Double-click on an edge to delete it.
+
+**Saving Flow** <br>
+Click on the "Save Changes" button in the top bar (FlowCanvas) to save the current flow state.
+The application validates if there are unconnected nodes or empty target handles before saving.
+
+### File Structure
+The project structure is organized as follows:
+
+├── public/
+├── src/
+│   ├── components/flowbuilder
+│   │   ├── FlowCanvas.jsx
+│   │   ├── SideBar.jsx
+│   │   ├── UpdateNode.jsx
+│   │   ├── Notification.jsx
+|   |   ├── TextNode.jsx
+│   ├── store/
+│   │   ├── Constants.jsx
+│   ├── styles/
+│   │   ├── FlowCanvas.css
+│   │   ├── SideBar.css
+│   │   ├── TextNode.css
+│   │   ├── UpdatedNode.css
+├── README.md
+├── package.json
+└── ...
