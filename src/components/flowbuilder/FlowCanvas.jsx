@@ -85,7 +85,7 @@ function FlowCanvas() {
        // setSelectedEdgeId(null); // Reset selected edge after deletion
        });
     }
-  }, [])
+  }, [setEdges])
 
 
    // adjusting the canvas 
@@ -137,30 +137,20 @@ function FlowCanvas() {
   const saveFlow = () => {
     const currentNodes = reactFlowInstance.getNodes();
     const currentEdges = reactFlowInstance.getEdges();
-    // console.log(currentEdges)
-    // console.log(currentNodes)
-    // console.log(targetHandles)
-    const map = new Map()
-    let value =1;
-    currentNodes.forEach(node=>{
-         map.set(node.id, value++)
-    })
-    //console.log(map)
-   // iterate though the edges 
-   //pop all target nodes
-   // if stack size is more than one - false
 
-   currentEdges.forEach(edge=>{
-      if(map.has(edge.target)){
-        map.delete(edge.target)
-      }
-   })
-   //console.log(map)
-
-// Save button press will show an error if there are more than one Nodes have no edges 
-//and more than one Node has empty target handles
-    if (currentEdges.length === currentNodes.length - 1 || currentEdges.length === currentNodes.length && map.size<=1) {
-      sessionStorage.setItem("nodes", JSON.stringify(currentNodes));
+   // Validate flow before saving
+   // Save button press will show an error if there are more than one Nodes have no edges 
+  //and more than one Node has empty target handles
+   const unconnectedNodes = currentNodes.filter((node) => !currentEdges.some((edge) => edge.source === node.id));
+   if (unconnectedNodes.length > 1 || targetHandles.length > 1) {
+    setErrorMessage('Cannot save Flow')
+    setMessageColor('red-message')
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
+   }
+   else{
+    sessionStorage.setItem("nodes", JSON.stringify(currentNodes));
       sessionStorage.setItem("edges", JSON.stringify(currentEdges));
       sessionStorage.setItem("targets", JSON.stringify(targetHandles));
       setErrorMessage('Saved Flow')
@@ -168,14 +158,8 @@ function FlowCanvas() {
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
-    } else {
-     
-      setErrorMessage('Cannot save Flow')
-      setMessageColor('red-message')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
-    }
+
+   }
   }
 
    // Effect to fetch initial state from sessionStorage on component mount
