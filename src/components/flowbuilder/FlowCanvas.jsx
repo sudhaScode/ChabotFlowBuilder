@@ -1,53 +1,62 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
   useNodesState,
   useEdgesState,
+  getConnectedEdges,
   Controls,
-} from 'reactflow'
+} from 'reactflow';
 import 'reactflow/dist/style.css'
 import SideBar from './SideBar'
 import UpdateNode from './UpdateNode'
 import Notification from './Notification'
-import TextNode from './TextNode'
 import './styles/FlowCanvas.css'
-import TopBar from './TopBar'
+//import { useSnackbar } from 'notistack';
+import { nodeTypes } from './store/Constants';
+import { initialNodes, initialEdges, initialTagets } from './store/Constants'
 
-let id = 0
 
+let id = JSON.parse(sessionStorage.getItem("nodes"))?.length+1 || 1;
 function FlowCanvas() {
+  // Get the locally saved data
+ 
   const reactFlowWrapper = useRef(null)
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
-  const [reactFlowInstance, setReactFlowInstance] = useState(null)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialEdges?JSON.parse(initialNodes):[])
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges?JSON.parse(initialEdges):[])
+  const [reactFlowInstance, setReactFlowInstance] = useState(initialTagets?JSON.parse(initialTagets):[])
   const [nodeSelected, setNodeSelected] = useState(false)
   const [changeNode, setChangeNode] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null) // custom error message notification
   const [messageColor, setMessageColor] = useState(null) // custom color for error & success notification
   const [targetHandles, setTargetHandles] = useState([]) // keep track of target handles when new edges are created between nodes
-
-  // determine when a node is selected by user
-  // console.log(nodes, reactFlowInstance);
+  //const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+  //const [id, setId] = useState(JSON.parse(initialNodes)?.length || 0);
+  
+  //Chatbot flow Builder Features
+  const nodeFeatures= [{feature:"Message"}]
+  
+  // Functions for node selection and update
   const update = useCallback((event, node) => {
-    // console.log(event, node);
     setChangeNode(node)
     setNodeSelected(true)
-  }, [])
+  }, []);
 
-  // keep track of target handles when new edges are created between nodes to limit no. of sourceHandles & targetHanles count for saving flow
+  //unused - ignore
+  const reset = useCallback((event,node)=>{
+    //setChangeNode(node)
+    //setNodeSelected((state)=>!state)
+  })
+
+  // Functions for edge creation and limitations
   let sourceHandles = []
   let targetHandle = []
-  // onConnect is called when only making a sourceHandle connection
   const onConnect = useCallback(
     (params) => {
-      // console.log(params)
-
       // check if sourcehandle is already connected to node via a edge if it exists then allow another connection
       if (sourceHandles.includes(params.source)) return
       sourceHandles = sourceHandles.concat(params.source)
-      // console.log('source', sourceHandles)
-
+    
       setEdges(
         (eds) => addEdge({ ...params, markerEnd: { type: 'arrowclosed' } }, eds) // to add arrowhead at the end of the edge connection pass additional params
       )
@@ -56,15 +65,47 @@ function FlowCanvas() {
       if (targetHandle.includes(params.target)) return
       targetHandle = targetHandle.concat(params.target)
       setTargetHandles(targetHandle)
-      // console.log('target', targetHandle)
+      
+  
     },
     [setEdges]
   )
 
+  // Node deletion function feature tom be added
+  const deleteNode = useCallback((nodeId) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId))
+    const connectedEdges = getConnectedEdges(edges, nodeId)
+    setEdges((eds) => eds.filter((edge) => !connectedEdges.includes(edge)))
+    setTargetHandles([]) // Reset target handle tracking on deletion
+  }, [edges, setEdges, setNodes])
+
+  // Function to handle edge click for deletion
+  const handleEdgeClick = useCallback((event, edge) => {
+   // setSelectedEdgeId(edge); // Track the clicked edge for deletion
+    deleteEdge(edge)
+  }, [])
+
+  // Function to confirm and delete selected edge
+  const deleteEdge = useCallback((edge) => {
+    if (edge) {
+      //console.log(edge)
+      //console.log(targetHandles.includes(edge.target))
+      setTargetHandles(prevState=>prevState.filter(target=> target !== edge.target));
+      setEdges((prevState) => prevState.filter((ed) => ed.id !== edge.id), () => {
+        // Callback executed after filter operation
+       // setSelectedEdgeId(null); // Reset selected edge after deletion
+       });
+    }
+  }, [])
+
+
+   // adjusting the canvas 
+   
   const onDragOver = useCallback((event) => {
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
   }, [])
+
 
   const onDrop = useCallback(
     (event) => {
@@ -78,20 +119,23 @@ function FlowCanvas() {
         return
       }
 
-      const position = reactFlowInstance.project({
+      const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       })
-
+      
+      //const updatedId = id + 1;
+     // console.log(updatedId)
+      //setId(updatedId);
       // creating a new node
       const newerNode = {
         id: `node_${id}`,
         type: 'node',
         position,
-        data: { heading: 'Send Message', label: `text message ${id}` },
+        data: { heading: 'Send Message', label: `Test message ${id}` },
       }
-
-      id++
+      id++;
+      // the main state which makes the nodes
       setNodes((nds) => nds.concat(newerNode))
     },
     [reactFlowInstance, setNodes]
@@ -100,29 +144,48 @@ function FlowCanvas() {
   // to hide the react flow attribution for personal/hobby projects
   let proOptions = { hideAttribution: true }
 
-  // use Custom new node types so that we can add a header to the nodes along with a label
-  const nodeTypes = useMemo(
-    () => ({
-      node: TextNode,
-    }),
-    []
-  )
-
   // save node flow on click of save changes button using below function & validating for not more than one node target handles are unconnected
   const saveFlow = () => {
-    // console.log(reactFlowInstance);
-    const totalNodes = reactFlowInstance.getNodes().length
+  
+    
+    
+    const currentNodes = reactFlowInstance.getNodes();
+    const currentEdges = reactFlowInstance.getEdges();
+    // console.log(currentEdges)
+    // console.log(currentNodes)
     // console.log(targetHandles)
+    const map = new Map()
+    let value =1;
+    currentNodes.forEach(node=>{
+         map.set(node.id, value++)
+    })
+    //console.log(map)
+   // iterate though the edges 
+   //pop all target nodes
+   // if stack size is more than one - false
 
-    if (targetHandles.length !== totalNodes - 1) {
-      setErrorMessage('Cannot save Flow')
-      setMessageColor('redMessage')
+   currentEdges.forEach(edge=>{
+      if(map.has(edge.target)){
+        map.delete(edge.target)
+      }
+   })
+   //console.log(map)
+
+// Save button press will show an error if there are more than one Nodes have no edges 
+//and more than one Node has empty target handles
+    if (currentEdges.length === currentNodes.length - 1 || currentEdges.length === currentNodes.length && map.size<=1) {
+      sessionStorage.setItem("nodes", JSON.stringify(currentNodes));
+      sessionStorage.setItem("edges", JSON.stringify(currentEdges));
+      sessionStorage.setItem("targets", JSON.stringify(targetHandles));
+      setErrorMessage('Saved Flow')
+      setMessageColor('green-message')
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
     } else {
-      setErrorMessage('Saved Flow')
-      setMessageColor('greenMessage')
+     
+      setErrorMessage('Cannot save Flow')
+      setMessageColor('red-message')
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
@@ -130,15 +193,22 @@ function FlowCanvas() {
   }
 
   return (
-    <div className="appflow" style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlowProvider>
-        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-          <div className="topbar">
-            <Notification
+    <div className="appflow">
+       <div className="topbar">
+           
+           <h3 className='appflow-logo'>Ë-ChatFlow Ƀuilder</h3>
+           {errorMessage  &&  <Notification
               errorMessage={errorMessage}
               messageColor={messageColor}
-            />
+            />}
+             <div className='save-changes'>
+              <button onClick={saveFlow}>Save Changes</button>
+            </div>
           </div>
+      
+      <ReactFlowProvider>
+      <div className='flow-body'>
+        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -150,15 +220,25 @@ function FlowCanvas() {
             onDragOver={onDragOver}
             fitView
             proOptions={proOptions}
-            onNodeClick={update}
             nodeTypes={nodeTypes}
+            onNodeClick={update}
+            onEdgeDoubleClick={handleEdgeClick}
+            //onClick={reset}
+            
+            onEdgeContextMenu={({ edge }) => ( // Pass a function that returns the context menu content
+              <div>
+                <button onClick={() => deleteEdge(edge.id)}>
+                  Delete Edge
+                </button>
+              </div>
+            )}
           >
             <Controls />
           </ReactFlow>
         </div>
-        {nodeSelected ? (
+       <aside>
+       {nodeSelected ? (
           <div className="rightbar">
-            <TopBar saveFlow={saveFlow} />
             <UpdateNode
               selectedNode={changeNode}
               setNodeSelected={setNodeSelected}
@@ -167,10 +247,14 @@ function FlowCanvas() {
           </div>
         ) : (
           <div className="rightbar">
-            <TopBar saveFlow={saveFlow} />
-            <SideBar />
+            <SideBar nodeTypes={nodeFeatures} />
           </div>
         )}
+       
+       </aside>
+       
+       </div>
+       <div className='delete-edge'>Double click on edge to  delete</div>
       </ReactFlowProvider>
     </div>
   )

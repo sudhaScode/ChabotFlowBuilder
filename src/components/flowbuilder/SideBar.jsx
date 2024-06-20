@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import "./styles/SideBar.css"
 
-function SideBar (){
+function SideBar({ nodeTypes }) {
   const [showUsage, setShowUsage] = useState(true) // state to show helpful chat flow usage info
 
   // Tell drag & drop usage of nodes to user on first load of the application
@@ -11,8 +11,6 @@ function SideBar (){
     }, 5000)
   }, [showUsage])
 
-  // display show node usage information on first load of the application
-  const displayUsage = showUsage ? '' : 'none'
 
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType)
@@ -21,14 +19,26 @@ function SideBar (){
 
   // You can expand upon adding new nodes by change the type from default
   return (
-    <div className='sidebar'>
-      <div className="description" style={{ display: displayUsage }}>
-        Drag below node to the pane on the left to add new nodes.
+    <>
+      {showUsage && <div className="description" >
+        Drag required node to the pane on the left to add new nodes.
+      </div>}
+      <div className='sidebar'>
+        {nodeTypes.map((nodeType) =>
+          <div
+            className="appnode"
+            onDragStart={(event) => onDragStart(event, 'default')}
+            draggable
+            key={`$08{nodeType}1`}
+          >
+              <span>
+                <img src={`${nodeType.feature}.png`} alt="chat" className={`${nodeType.feature.toLowerCase()}-icon`} />
+              </span>
+              {nodeType.feature}
+          </div>
+        )}
       </div>
-      <div>
-        Message
-      </div>
-    </div>
+    </>
   )
 }
 

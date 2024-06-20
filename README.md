@@ -1,7 +1,7 @@
 # Getting Started with Create React App
 
 To run the application for development:
-### `npm install` or recomended - `pnpm install` 
+###  `pnpm install` 
 Run at root directory to install all dependencies.
 
 ### `npm start` or recomended - `pnpm start` 

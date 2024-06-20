@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useReactFlow } from 'reactflow';
+import "./styles/UpdatedNode.css"
 
 // eslint-disable-next-line react/prop-types
 function UpdateNode  ({
@@ -9,13 +10,10 @@ function UpdateNode  ({
   setNewNodeLabel,
 }) {
   const [nodeName, setNodeName] = useState(selectedNode.data['label']);
-  // const reactFlowInstance = useReactFlow();
-  // console.log(reactFlowInstance.getNodes());
+ 
   let id = selectedNode.id;
 
   useEffect(() => {
-    // console.log(selectedNode.data['label'], setNodes);
-    // const nodes = reactFlowInstance.getNodes();
 
     setNodeName(selectedNode.data['label']);
   }, [id]);
@@ -44,40 +42,27 @@ function UpdateNode  ({
   };
 
   return (
-    // <aside>
+
     <>
-      {/* <div style={{ width: `100%`, height: 2, background: 'grey' }}></div> */}
-      <div className="update">
-        <div className="back">
-          <span
-            className="material-symbols-outlined"
-            style={{ marginRight: 10, cursor: 'pointer' }}
-            onClick={mainSidebar}
-          >
-            arrow_back
-          </span>
-          <h2 style={{ paddingLeft: 50, margin: 0 }}>Message</h2>
+       <div className='modal'>
+          <div className='modal-head'>
+            <span
+                className="material-symbols-outlined"
+                onClick={mainSidebar}
+              >
+                arrow_back
+              </span>
+              <h2 className='modal-title'>Message</h2>
+          </div>
+          <div className='line-break'></div>
+          <div className='modal-body'>
+            <label htmlFor='nodetext'>Text</label>
+            <textarea id= "nodetext"className='modal-textfiled' value={nodeName} rows="4" cols="30" onChange={(evt) => {
+            setNodeName(evt.target.value)}}></textarea>
+          </div>
+          <div className='line-break'></div>
         </div>
-      </div>
-      <div style={{ width: `100%`, height: 2, background: 'grey' }}></div>
-
-      <div className="update">
-        <h3>Text:</h3>
-        <textarea
-          rows="4"
-          cols="25"
-          value={nodeName}
-          onChange={(evt) => {
-            setNodeName(evt.target.value);
-            // setNewNodeLabel(evt.target.value);
-          }}
-          style={{ marginBottom: 15, borderRadius: 5 }}
-        />
-      </div>
-      <div style={{ width: `100%`, height: 2, background: 'grey' }}></div>
     </>
-
-    // </aside>
   );
 };
 

@@ -6,37 +6,24 @@ function TextNode ({ data }) {
   // console.log(data)
 
   return (
-    <div>
-      <div className='node-style'>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <span>
-            {/* whatsapp svg icon credit -
-Bqlqn Lineal flaticon.com */}
-             <img src="chat.png" alt="whatsapp icon" height={15} />
-          </span>
-          {data.heading}
+    <div className='node'>
+      <div className='node-header'>
+        <div   className='left-icon'>
+            <span>
+                            {/* chat png icon credit -
+                Bqlqn Lineal flaticon.com */}
+              <img src="chat.png" alt="chat" />
+            </span>
+            <p>{data.heading}</p>
         </div>
-        <div style={{ paddingRight: 15 }}>
-          {/* whatsapp png icon credit -
-Andrew Dynamite flaticon.com */}
-          <span><img src="social.png" alt="whatsapp icon" height={15} /></span>
+        <div className='right-icon'>
+                    {/* whatsapp png icon credit -
+          Andrew Dynamite flaticon.com */}
+          <span><img src="whatsapp.png" alt="whatsapp"/></span>
         </div>
       </div>
-      <div
-        style={{
-          padding: 15,
-          borderBottomLeftRadius: 5,
-          borderBottomRightRadius: 5,
-          backgroundColor: 'white',
-        }}
-      >
-        <div
-          style={{
-            color: 'black',
-          }}
-        >
-          {data.label}
-        </div>
+      <div className='node-body'>
+       <p>{data.label}</p>
       </div>
       <Handle type="source" position={Position.Right} id="source" />
       <Handle type="target" position={Position.Left} id="target" />
