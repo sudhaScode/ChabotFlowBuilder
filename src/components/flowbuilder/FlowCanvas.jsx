@@ -228,7 +228,7 @@ function FlowCanvas() {
        </aside>
        </div>
         {/* Instruction for deleting edges */}
-       <div className='delete-edge'>Double click on edge to  delete</div>
+       <div className='delete-edge'>Double click on edge to delete it</div>
       </ReactFlowProvider>
     </div>
   )
