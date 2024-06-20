@@ -34,12 +34,12 @@ cd ChabotFlowBuilder
 ```
 **Install dependencies:**
 ```
-pnpm install
+npm install
 
 ```
 **Start the development server:**
 ```
-pnpm start or npm start
+npm start or npm start
 
 ```
 This will start the application on http://localhost:3000.
